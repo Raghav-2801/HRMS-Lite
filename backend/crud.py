@@ -1,0 +1,48 @@
+from sqlalchemy.orm import Session
+import models, schemas
+
+# --- Employee Operations ---
+
+def get_employee(db: Session, employee_id: int):
+    return db.query(models.Employee).filter(models.Employee.id == employee_id).first()
+
+def get_employee_by_email(db: Session, email: str):
+    return db.query(models.Employee).filter(models.Employee.email == email).first()
+
+def get_employee_by_emp_id(db: Session, emp_id: str):
+    # Check if 'EMP001' already exists
+    return db.query(models.Employee).filter(models.Employee.employee_id == emp_id).first()
+
+def get_employees(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Employee).offset(skip).limit(limit).all()
+
+def create_employee(db: Session, employee: schemas.EmployeeCreate):
+    db_employee = models.Employee(
+        employee_id=employee.employee_id,
+        full_name=employee.full_name,
+        email=employee.email,
+        department=employee.department
+    )
+    db.add(db_employee)
+    db.commit()
+    db.refresh(db_employee)
+    return db_employee
+
+def delete_employee(db: Session, employee_id: int):
+    db_employee = db.query(models.Employee).filter(models.Employee.id == employee_id).first()
+    if db_employee:
+        db.delete(db_employee)
+        db.commit()
+    return db_employee
+
+# --- Attendance Operations ---
+
+def create_attendance(db: Session, attendance: schemas.AttendanceCreate):
+    db_attendance = models.Attendance(**attendance.model_dump())
+    db.add(db_attendance)
+    db.commit()
+    db.refresh(db_attendance)
+    return db_attendance
+
+def get_attendance_records(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Attendance).offset(skip).limit(limit).all()
